@@ -1,97 +1,120 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import iconRemove from '../../assets/icons8-remove-48.svg'
 
 // import { Task } from "../../Components/task";
 
 interface ITask {
-  id: number,
-  text: string,
-  marcado: boolean
+    id: number,
+    text: string,
+    marcado: boolean
 }
-
 
 function Todo() {
 
-  const [taskName, setTaskName] = useState<ITask[]>([]);
-  const [inputText, setInputText] = useState('');
+    const [loaded, setLoaded] = useState(false);
+    const [taskName, setTaskName] = useState<ITask[]>([]);
+    const [inputText, setInputText] = useState('');
 
-  function create(text: string) {
-    const newTask: ITask = {
-      id: Date.now(),
-      text: text,
-      marcado: false
-    };
+    function create(text: string) {
+        const newTask: ITask = {
+            id: Date.now(),
+            text: text,
+            marcado: false
+        };
 
-    setTaskName([...taskName, newTask]);
-  }
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    create(inputText);
-    setInputText('');
-  }
-
-  function remove(id: Number) {
-    setTaskName(taskName.filter(f => f.id !== id))
-  }
-
-  function update(id: number, checked: boolean) {
-    const task = taskName.find(f => f.id === id);
-    
-    if (task) {
-        task.marcado = checked;
-
-        setTaskName([...taskName]);
+        setTaskName([...taskName, newTask]);
     }
-}
 
+    function handleSubmit(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
 
-  return (
-    <div className="main">
+        create(inputText);
+        setInputText('');
+    }
 
-      <form className="add" name="form" onSubmit={handleSubmit}>
-        <input
-          value={inputText}
-          type="text"
-          className="tarefa"
-          name="text"
-          placeholder="Qual sua proxima tarefa?"
-          required
-          onChange={e => setInputText(e.target.value)}
-        />
+    function remove(id: Number) {
+        setTaskName(taskName.filter(f => f.id !== id))
+    }
 
-        <button>add</button>
-      </form>
+    function update(id: number, checked: boolean) {
+        const task = taskName.find(f => f.id === id);
 
-      <ul className="myTask">
-        {
-          taskName.length
-          ?
-          taskName.map(({ marcado, id, text }) => (
-            <li key={id} className={marcado ? 'completo' : 'task'}>
-              <label className={marcado ? 'checked' : ''}>
-                <input
-                  onChange={event => update(id, event.target.checked)}
-                  type="checkbox" 
-                  name='checkbox' 
-                  checked={marcado} 
-                />
-                <h2>{text}</h2>
-              </label>
+        if (task) {
+            task.marcado = checked;
 
-              <button onClick={() => remove(id)}>
-                <img className="remove" src={iconRemove} alt="remove" />
-              </button>
-            </li>
-          ))
-          :
-          <h1>Você ainda não possui tarefas 🙁</h1>
+            setTaskName([...taskName]);
         }
-      </ul>
+    }
 
-    </div>
-  )
+    function saveLocalStorage() {
+        const tasksStr = JSON.stringify(taskName);
+
+        localStorage.setItem('@todo:listReact', tasksStr);
+    }
+
+    function loadLocalStorage() {
+        const tasksStr = localStorage.getItem('@todo:listReact');
+        const loadedTasks = tasksStr ? JSON.parse(tasksStr) : [];
+
+        setTaskName(loadedTasks);
+    }
+
+    
+    useEffect(() => {
+        loadLocalStorage();
+        setLoaded(true)
+    }, []);
+
+    useEffect(() => {
+        if (loaded) saveLocalStorage()
+    }, [taskName,loaded]);
+
+
+    return (
+        <div className="main">
+
+            <form className="add" name="form" onSubmit={handleSubmit}>
+                <input
+                    value={inputText}
+                    type="text"
+                    className="tarefa"
+                    name="text"
+                    placeholder="Qual sua proxima tarefa?"
+                    required
+                    onChange={e => setInputText(e.target.value)}
+                />
+
+                <button>add</button>
+            </form>
+
+            <ul className="myTask">
+                {
+                    taskName.length
+                        ?
+                        taskName.map(({ marcado, id, text }) => (
+                            <li key={id} className={marcado ? 'completo' : 'task'}>
+                                <label className={marcado ? 'checked' : ''}>
+                                    <input
+                                        onChange={event => update(id, event.target.checked)}
+                                        type="checkbox"
+                                        name='checkbox'
+                                        checked={marcado}
+                                    />
+                                    <h2>{text}</h2>
+                                </label>
+
+                                <button onClick={() => remove(id)}>
+                                    <img className="remove" src={iconRemove} alt="remove" />
+                                </button>
+                            </li>
+                        ))
+                        :
+                        <h1>Você ainda não possui tarefas 🙁</h1>
+                }
+            </ul>
+
+        </div>
+    )
 }
 
 export default Todo
