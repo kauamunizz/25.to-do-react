@@ -1,8 +1,6 @@
 import { FormEvent, useEffect, useState } from "react";
 import iconRemove from '../../assets/icons8-remove-48.svg'
 
-// import { Task } from "../../Components/task";
-
 interface ITask {
     id: number,
     text: string,
@@ -58,17 +56,15 @@ function Todo() {
 
         setTaskName(loadedTasks);
     }
-
     
     useEffect(() => {
         loadLocalStorage();
-        setLoaded(true)
+        setLoaded(true);
     }, []);
 
     useEffect(() => {
-        if (loaded) saveLocalStorage()
+        if (loaded) saveLocalStorage();
     }, [taskName,loaded]);
-
 
     return (
         <div className="main">
